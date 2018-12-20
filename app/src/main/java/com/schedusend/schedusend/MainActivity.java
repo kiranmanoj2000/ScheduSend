@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
-        JobInfo info = new JobInfo.Builder(101, service).setMinimumLatency(10000).build();
+        JobInfo info = new JobInfo.Builder(101, service).setMinimumLatency(10004).build();
         if(timeWait<0){
             return null;
         } else {
