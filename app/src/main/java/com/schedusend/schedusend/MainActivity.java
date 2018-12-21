@@ -4,46 +4,296 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.telephony.SmsManager;
-import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
-import static android.Manifest.permission.SEND_SMS;
 import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
+private boolean correctYear = false;
+private boolean correctMonth = false;
+private boolean correctDay = false;
+private boolean correctTime = false;
+
+private EditText editYear;
+private EditText editMonth;
+private EditText editDay;
+private EditText editTime;
+private EditText editMessage;
+
+private int monthIndex = -1;
+private int targetYear;
+private int targetDay;
+private int targetHour;
+private int targetMinute;
+private static final int YEARCONVERSION = 1900;
+
+private static final String[] MONTHS = {"January","February","March","April","May","June","July",
+        "August","September","October","November","December"};
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestPermissions();
-        schedule(createJobInfo(calculateTimeUntil()));
+        initializeUI();
+
+
+    }
+
+    public void initializeUI(){
+        editYear = (EditText)findViewById(R.id.editYear);
+        editMonth = (EditText)findViewById(R.id.editMonth);
+        editDay = (EditText)findViewById(R.id.editDay);
+        editTime = (EditText)findViewById(R.id.editTime);
+        editMessage = (EditText)findViewById(R.id.editMessage);
+
+        // setting to current times
+        editYear.setText(""+Calendar.getInstance().get(Calendar.YEAR));
+        editMonth.setText(MONTHS[Calendar.getInstance().get(Calendar.MONTH)]);
+        editDay.setText(""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+        // getting current hours and min
+        int hours = (int)Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int min = (int)Calendar.getInstance().get(Calendar.MINUTE)+1;
+        String convertHours = Integer.toString(hours);
+        String convertMins = Integer.toString(min);
+        // formatting time
+        if(min<10&&hours<10){
+            editTime.setText("0"+ convertHours + ":0" + convertMins);
+        }else if(min<10){
+            editTime.setText(convertHours + ":0" + convertMins);
+        }else if(hours<10){
+            editTime.setText("0"+ convertHours + ":" + convertMins);
+        }else{
+            editTime.setText(convertHours + ":" + convertMins);
+        }
+
+
+        //Toast.makeText(this,""+min, Toast.LENGTH_LONG).show();
+        // freezing each textview
+        editMonth.setFocusable(false);
+        editDay.setFocusable(false);
+        editTime.setFocusable(false);
+        editMessage.setFocusable(false);
+
+
+    }
+
+    public void setYear(View view){
+        targetYear = 0;
+        String year = editYear.getText().toString();
+        if(!year.equals("")){
+            targetYear = Integer.parseInt(year) - YEARCONVERSION;
+        }
+
+        if(targetYear == 0){
+            Toast.makeText(this,"Please enter a year", Toast.LENGTH_LONG).show();
+        }
+
+        else if(targetYear>=(Calendar.getInstance().get(Calendar.YEAR))-YEARCONVERSION
+                &&(targetYear-(Calendar.getInstance().get(Calendar.YEAR)-YEARCONVERSION))==0){
+            // increase the count of the correct inputs
+            correctYear=true;
+            // disable re-editing
+            editYear.setFocusable(false);
+            // allow editing of next
+            editMonth.setFocusableInTouchMode(true);
+        }else{
+            Toast.makeText(this,"Please enter a valid year", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void setMonth(View view){
+        if(correctYear){
+            String month = editMonth.getText().toString();
+            boolean found = false;
+            for(int i = 0; i<12 && !found; i++){
+                if(MONTHS[i].equalsIgnoreCase(month)){
+                    monthIndex = i;
+                    found= true;
+                }
+            }
+            // check if a month is even entered
+            if(monthIndex==-1){
+                Toast.makeText(this,"Please enter a proper month", Toast.LENGTH_LONG).show();
+            }else
+                // if its December
+                if(Calendar.getInstance().get(Calendar.MONTH)==11&&!(monthIndex==0||monthIndex==11)){
+                    Toast.makeText(this,"Cannot schedule for longer than a month", Toast.LENGTH_LONG).show();
+                }else
+                if(monthIndex>(Calendar.getInstance().get(Calendar.MONTH)+1) && monthIndex!=11){
+                    Toast.makeText(this,"Cannot schedule for longer than a month", Toast.LENGTH_LONG).show();
+                }
+                // the month has passed
+                else if(Calendar.getInstance().get(Calendar.MONTH)-monthIndex<0){
+                    Toast.makeText(this,"Cannot schedule in the past", Toast.LENGTH_LONG).show();
+                }
+
+                else{
+                    editMonth.setFocusable(false);
+                    editDay.setFocusableInTouchMode(true);
+                    correctMonth = true;
+                }
+        }
+
+    }
+
+    public void setDay(View view){
+        if(correctMonth){
+            int date = 0;
+            if(!editDay.getText().toString().equals("")){
+                date = Integer.parseInt(editDay.getText().toString());
+            }
+
+            if(date == -1){
+                Toast.makeText(this,"No date entered", Toast.LENGTH_LONG).show();
+            }// date is before current date
+            else if(date< Calendar.getInstance().get(Calendar.DAY_OF_MONTH)){
+                Toast.makeText(this,"Date is not before the current date", Toast.LENGTH_LONG).show();
+            }
+            else if(date == 0){
+                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+            }
+            else if(monthIndex==0&&date>31){
+                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+            }else if(monthIndex!=0 && monthIndex!=11 && monthIndex%2 == 1 && date>30){
+                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+            }else if(date>31&&monthIndex%2==0 && monthIndex!=11){
+                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+            }else if(date>31 && monthIndex ==11){
+                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+            }
+
+            // the day is valid
+            else{
+                editDay.setFocusable(false);
+                editTime.setFocusableInTouchMode(true);
+                targetDay = date;
+                correctDay = true;
+            }
+        }
+
+
+
+    }
+
+    public void setTime(View view){
+        if(correctDay) {
+            int index = 0;
+            String userTime = editTime.getText().toString();
+            // if the string entered is 5 characters
+            if (userTime.length() == 5) {
+
+                // find how many colons there are
+                for (int i = 0; i < 5; i++) {
+                    if (userTime.charAt(i) == ':') {
+                        index++;
+                    }
+                }
+                // there is more than one colon
+                if (index > 1) {
+                    Toast.makeText(this, "More than one colon", Toast.LENGTH_LONG).show();
+                }
+                // one colon in middle
+                else if (userTime.charAt(2) == ':') {
+                    String[] hrMin = userTime.split(":");
+                    int hr = Integer.parseInt(hrMin[0]);
+                    int min = Integer.parseInt(hrMin[1]);
+                    int accHours = (int)Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+                    int accMin = (int)Calendar.getInstance().get(Calendar.MINUTE);
+                    Date compare = new Date(targetYear,monthIndex,targetDay,hr,min);
+
+                    if (hr > 24 || min > 60) {
+                        Toast.makeText(this, "Please enter a valid time", Toast.LENGTH_LONG).show();
+                    }
+                    // check if time is before the time right now
+                    else if(!compare.after(Calendar.getInstance().getTime())){
+                        Toast.makeText(this, "The entered time has passed", Toast.LENGTH_LONG).show();
+                    }
+                    // CORRECT TIME
+                    else {
+                        targetHour = hr;
+                        targetMinute = min;
+                        correctTime = true;
+                        editTime.setFocusable(false);
+                        editMessage.setFocusableInTouchMode(true);
+                    }
+                }
+                // there's no colon in the centre
+                else {
+                    Toast.makeText(this, "Please seperate hrs and min with ':'", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(this, "Please enter a 5 character time", Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+
+    }
+
+    public void reset(View view){
+        editYear.setFocusableInTouchMode(true);
+        editMonth.setFocusable(false);
+        editDay.setFocusable(false);
+        editTime.setFocusable(false);
+        editMessage.setFocusable(false);
+        correctYear = false;
+        correctMonth = false;
+        correctDay = false;
+        correctTime = false;
+    }
+
+    public void callToSchedule(View view){
+        // get message
+        String message = editMessage.getText().toString();
+        if(!message.equals("")){
+
+            Message.message = editMessage.getText().toString();
+            // only run if all times are proper
+            if(correctYear&&correctMonth&&correctDay&&correctTime){
+
+                scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
+
+            }else{
+                Toast.makeText(this, "Message cannot be scheduled with current configuration", Toast.LENGTH_LONG).show();
+            }
+        }
+        else{
+            Toast.makeText(this, "Message cannot be scheduled with an empty message", Toast.LENGTH_LONG).show();
+        }
+
+
     }
 
 
-    int calculateTimeUntil(){
-        Date targetDay = new Date(118,11,20,11,30);
+
+
+
+    public int calculateTimeUntil(int year, int month, int date, int hours, int min){
+        Date targetDay = new Date(year,month,date,hours,min);
         int waitTime = 0;
-        if(targetDay.getTime()>Calendar.getInstance().getTimeInMillis()){
-            waitTime = (int) (targetDay.getTime()-Calendar.getInstance().getTimeInMillis());
+        Toast.makeText(this,""+targetDay, Toast.LENGTH_LONG).show();
+        if(targetDay.getTime()>Calendar.getInstance().getTimeInMillis()) {
+            waitTime = (int) (targetDay.getTime() - Calendar.getInstance().getTimeInMillis());
         }
         //if entered date is before current date
         if(waitTime<0){
-            Toast.makeText(this,"The entered date has passed",Toast.LENGTH_LONG).show();;
+            Toast.makeText(this,"The entered date has passed",Toast.LENGTH_LONG).show();
         }
+        Toast.makeText(this,""+waitTime,Toast.LENGTH_LONG).show();
         return waitTime;
     }
 
 
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
-        JobInfo info = new JobInfo.Builder(101, service).setMinimumLatency(10004).build();
+        JobInfo info = new JobInfo.Builder(101, service).setMinimumLatency(timeWait).build();
         if(timeWait<0){
             return null;
         } else {
@@ -52,12 +302,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    void schedule(JobInfo info){
+    public void scheduleBackend(JobInfo info){
         JobScheduler scheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         scheduler.schedule(info);
     }
 
-    void requestPermissions(){
+    public void requestPermissions(){
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS},1);
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS},1);
     }
