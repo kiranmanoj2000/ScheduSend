@@ -4,6 +4,8 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,10 +16,12 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
+
 private boolean correctYear = false;
 private boolean correctMonth = false;
 private boolean correctDay = false;
 private boolean correctTime = false;
+private boolean allowSchedule = false;
 
 private EditText editYear;
 private EditText editMonth;
@@ -30,7 +34,10 @@ private int targetYear;
 private int targetDay;
 private int targetHour;
 private int targetMinute;
+private int numScheduled = 0;
 private static final int YEARCONVERSION = 1900;
+
+
 
 private static final String[] MONTHS = {"January","February","March","April","May","June","July",
         "August","September","October","November","December"};
@@ -41,6 +48,8 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestPermissions();
+      //  messageString = getSharedPreferences("Message_Database",MODE_PRIVATE);
+
         initializeUI();
 
 
@@ -222,6 +231,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
                         correctTime = true;
                         editTime.setFocusable(false);
                         editMessage.setFocusableInTouchMode(true);
+                        allowSchedule = true;
                     }
                 }
                 // there's no colon in the centre
@@ -247,27 +257,37 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         correctMonth = false;
         correctDay = false;
         correctTime = false;
+        allowSchedule = false;
     }
 
     public void callToSchedule(View view){
-        // get message
-        String message = editMessage.getText().toString();
-        if(!message.equals("")){
+        // only run id they have scheduled 3 or less messages
+        if(numScheduled<3){
+            // get message
+            String message = editMessage.getText().toString();
+            if(!message.equals("")){
+                // only run if all times are proper
+                if(correctYear&&correctMonth&&correctDay&&correctTime&&allowSchedule){
 
-            Message.message = editMessage.getText().toString();
-            // only run if all times are proper
-            if(correctYear&&correctMonth&&correctDay&&correctTime){
+                    scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
 
-                scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
-
-            }else{
-                Toast.makeText(this, "Message cannot be scheduled with current configuration", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(this, "Message cannot be scheduled with current configuration", Toast.LENGTH_LONG).show();
+                }
             }
-        }
-        else{
-            Toast.makeText(this, "Message cannot be scheduled with an empty message", Toast.LENGTH_LONG).show();
-        }
+            else{
+                if(allowSchedule==false){
+                    Toast.makeText(this, "Two messages cannot be scheduled at the same time", Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(this, "Message cannot be scheduled with an empty message", Toast.LENGTH_LONG).show();
+                }
 
+            }
+            allowSchedule = false;
+            numScheduled++;
+        }else{
+            Toast.makeText(this, "You cannot schedule more than 3 messages", Toast.LENGTH_LONG).show();
+        }
 
     }
 
@@ -293,7 +313,10 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
 
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
-        JobInfo info = new JobInfo.Builder(101, service).setMinimumLatency(timeWait).build();
+        // get string
+        PersistableBundle text = new PersistableBundle();
+        text.putString("Text", editMessage.getText().toString());
+        JobInfo info = new JobInfo.Builder(101, service).setExtras(text).setMinimumLatency(timeWait).build();
         if(timeWait<0){
             return null;
         } else {
