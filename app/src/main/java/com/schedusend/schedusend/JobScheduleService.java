@@ -34,7 +34,7 @@ public boolean jobCanel = false;
             Toast.makeText(this, "Message Sent",
                     Toast.LENGTH_LONG).show();
         } catch (Exception error) {
-            Toast.makeText(this,error.getMessage().toString(),
+            Toast.makeText(this, error.getMessage().toString(),
                     Toast.LENGTH_LONG).show();
             error.printStackTrace();
         }
@@ -47,15 +47,15 @@ public boolean jobCanel = false;
 
     }
 
-    private void useThread(final JobParameters parameter){
-        new Thread(new Runnable() {
-            public void run() {
-                deliverMessage(parameter.getExtras().getString("Text"), parameter);
-            }
-        }).start();
+  //  private void useThread(final JobParameters parameter){
+    //    new Thread(new Runnable() {
+      //      public void run() {
+        //        deliverMessage(parameter.getExtras().getString("Text"), parameter);
+          //  }
+      //  }).start();
         
 
-    }
+  //  }
 
 
 }

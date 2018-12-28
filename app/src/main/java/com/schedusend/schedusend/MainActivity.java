@@ -328,6 +328,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
     public void scheduleBackend(JobInfo info){
         JobScheduler scheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         scheduler.schedule(info);
+
     }
 
     public void requestPermissions(){
