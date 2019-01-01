@@ -4,7 +4,6 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.PersistableBundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -35,6 +34,7 @@ private int targetDay;
 private int targetHour;
 private int targetMinute;
 private int numScheduled = 0;
+private int uniqueID = 0;
 private static final int YEARCONVERSION = 1900;
 
 
@@ -316,18 +316,21 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         // get string
         PersistableBundle text = new PersistableBundle();
         text.putString("Text", editMessage.getText().toString());
-        JobInfo info = new JobInfo.Builder(101, service).setExtras(text).setMinimumLatency(timeWait).build();
+        JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text).setMinimumLatency(timeWait).setOverrideDeadline(timeWait+10000).build();
+        uniqueID++;
         if(timeWait<0){
             return null;
         } else {
             return info;
         }
 
+
     }
 
     public void scheduleBackend(JobInfo info){
         JobScheduler scheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         scheduler.schedule(info);
+
 
     }
 
