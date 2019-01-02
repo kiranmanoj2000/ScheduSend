@@ -4,13 +4,18 @@ import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
+import android.database.Cursor;
 import android.os.PersistableBundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.PhoneNumberUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -20,12 +25,14 @@ private boolean correctYear = false;
 private boolean correctMonth = false;
 private boolean correctDay = false;
 private boolean correctTime = false;
+private boolean correctContact = false;
 private boolean allowSchedule = false;
 
 private EditText editYear;
 private EditText editMonth;
 private EditText editDay;
 private EditText editTime;
+private EditText editContact;
 private EditText editMessage;
 
 private int monthIndex = -1;
@@ -37,19 +44,19 @@ private int numScheduled = 0;
 private int uniqueID = 0;
 private static final int YEARCONVERSION = 1900;
 
+private String phoneNumber;
 
 
 private static final String[] MONTHS = {"January","February","March","April","May","June","July",
         "August","September","October","November","December"};
-
+private ArrayList<String> names = new ArrayList<>();
+private ArrayList<String> numbers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         requestPermissions();
-      //  messageString = getSharedPreferences("Message_Database",MODE_PRIVATE);
-
         initializeUI();
 
 
@@ -60,6 +67,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         editMonth = (EditText)findViewById(R.id.editMonth);
         editDay = (EditText)findViewById(R.id.editDay);
         editTime = (EditText)findViewById(R.id.editTime);
+        editContact = (EditText)findViewById(R.id.editContact);
         editMessage = (EditText)findViewById(R.id.editMessage);
 
         // setting to current times
@@ -83,13 +91,35 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         }
 
 
-        //Toast.makeText(this,""+min, Toast.LENGTH_LONG).show();
         // freezing each textview
         editMonth.setFocusable(false);
         editDay.setFocusable(false);
         editTime.setFocusable(false);
+        editContact.setFocusable(false);
         editMessage.setFocusable(false);
 
+
+
+    }
+
+    public void readContacts(){
+        Cursor readIn = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null, null, null);
+        // keep reading in contacts while possible
+        while (readIn.moveToNext()){
+           names.add(readIn.getString(readIn.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)));
+           numbers.add(readIn.getString(readIn.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+       }
+       readIn.close();
+       formatNumbers(numbers);
+    }
+
+    public void formatNumbers(ArrayList<String> numbers){
+        String number = "";
+        for(int i = 0;i<numbers.size();i++){
+            number = numbers.get(i);
+            // removing hyphens and brackets from nummbers for ease of message decoding
+            numbers.set(i,number.replaceAll("[\\s\\-()]", ""));
+        }
 
     }
 
@@ -115,6 +145,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         }else{
             Toast.makeText(this,"Please enter a valid year", Toast.LENGTH_LONG).show();
         }
+        readContacts();
     }
 
     public void setMonth(View view){
@@ -230,8 +261,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
                         targetMinute = min;
                         correctTime = true;
                         editTime.setFocusable(false);
-                        editMessage.setFocusableInTouchMode(true);
-                        allowSchedule = true;
+                        editContact.setFocusableInTouchMode(true);
                     }
                 }
                 // there's no colon in the centre
@@ -247,6 +277,34 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
 
     }
 
+    public void setContact(View view){
+        if(correctTime){
+            String contact = editContact.getText().toString();
+            // check if a valid contact is entered
+            int index = names.indexOf(contact);
+            if(index!=-1){
+                // if it is a valid phone number
+                if(PhoneNumberUtils.isWellFormedSmsAddress(numbers.get(index))){
+
+                    phoneNumber = numbers.get(index);
+                    Toast.makeText(this,phoneNumber, Toast.LENGTH_LONG).show();
+                    editContact.setFocusable(false);
+                    editMessage.setFocusableInTouchMode(true);
+                    allowSchedule = true;
+                    correctContact = true;
+                }else{
+                    Toast.makeText(this, "The entered contact does not have a valid number", Toast.LENGTH_LONG).show();
+                }
+
+            }else{
+                Toast.makeText(this, "Please enter a valid contact", Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+    }
+
+
     public void reset(View view){
         editYear.setFocusableInTouchMode(true);
         editMonth.setFocusable(false);
@@ -257,17 +315,18 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
         correctMonth = false;
         correctDay = false;
         correctTime = false;
+        correctContact = false;
         allowSchedule = false;
     }
 
     public void callToSchedule(View view){
         // only run id they have scheduled 3 or less messages
-        if(numScheduled<3){
+        if(numScheduled<4){
             // get message
             String message = editMessage.getText().toString();
             if(!message.equals("")){
                 // only run if all times are proper
-                if(correctYear&&correctMonth&&correctDay&&correctTime&&allowSchedule){
+                if(correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule){
 
                     scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
 
@@ -276,7 +335,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
                 }
             }
             else{
-                if(allowSchedule==false){
+                if(!allowSchedule){
                     Toast.makeText(this, "Two messages cannot be scheduled at the same time", Toast.LENGTH_LONG).show();
                 }else{
                     Toast.makeText(this, "Message cannot be scheduled with an empty message", Toast.LENGTH_LONG).show();
@@ -313,9 +372,15 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
 
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
-        // get string
+        // get message
         PersistableBundle text = new PersistableBundle();
-        text.putString("Text", editMessage.getText().toString());
+        // get the length of the message
+        int messgLength = editMessage.getText().toString().length();
+        // concatenate message and number
+        String packaged = editMessage.getText().toString()+phoneNumber;
+        // add the length of the message to the concatenated string
+        packaged += ""+messgLength;
+        text.putString("Text", packaged);
         JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text).setMinimumLatency(timeWait).setOverrideDeadline(timeWait+10000).build();
         uniqueID++;
         if(timeWait<0){
@@ -335,7 +400,7 @@ private static final String[] MONTHS = {"January","February","March","April","Ma
     }
 
     public void requestPermissions(){
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS},1);
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS},1);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS},1);
+
     }
 }

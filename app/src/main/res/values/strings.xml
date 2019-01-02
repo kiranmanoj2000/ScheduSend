@@ -8,6 +8,7 @@
     <string name="message_hint">Message</string>
     <string name="alphabet">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
     <string name="time_input">1234567890:</string>
+    <string name="contact_hint">Contact</string>
     <string name="reset">Reschedule</string>
     <string name="schedule">Schedule!</string>
 </resources>

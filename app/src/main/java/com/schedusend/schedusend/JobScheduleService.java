@@ -26,11 +26,19 @@ public boolean jobCanel = false;
 
 
 
-
     private void deliverMessage(String text, JobParameters parameters){
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage("5195751229", null, ""+ text, null, null);
+            // decode message
+            // retrieve length of message
+            int length = Character.getNumericValue(text.charAt(text.length()-1));
+            String message = text.substring(0,length);
+            String number = text.substring(length, text.length()-1);
+            Toast.makeText(this, message,
+                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, number,
+                    Toast.LENGTH_LONG).show();
+            smsManager.sendTextMessage(""+number, null, ""+ message, null, null);
             Toast.makeText(this, "Message Sent",
                     Toast.LENGTH_LONG).show();
         } catch (Exception error) {
