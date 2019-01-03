@@ -285,7 +285,6 @@ private ArrayList<String> numbers = new ArrayList<>();
             if(index!=-1){
                 // if it is a valid phone number
                 if(PhoneNumberUtils.isWellFormedSmsAddress(numbers.get(index))){
-
                     phoneNumber = numbers.get(index);
                     Toast.makeText(this,phoneNumber, Toast.LENGTH_LONG).show();
                     editContact.setFocusable(false);
@@ -311,6 +310,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         editDay.setFocusable(false);
         editTime.setFocusable(false);
         editMessage.setFocusable(false);
+        editContact.setFocusable(false);
         correctYear = false;
         correctMonth = false;
         correctDay = false;
@@ -357,7 +357,6 @@ private ArrayList<String> numbers = new ArrayList<>();
     public int calculateTimeUntil(int year, int month, int date, int hours, int min){
         Date targetDay = new Date(year,month,date,hours,min);
         int waitTime = 0;
-        Toast.makeText(this,""+targetDay, Toast.LENGTH_LONG).show();
         if(targetDay.getTime()>Calendar.getInstance().getTimeInMillis()) {
             waitTime = (int) (targetDay.getTime() - Calendar.getInstance().getTimeInMillis());
         }
@@ -365,7 +364,6 @@ private ArrayList<String> numbers = new ArrayList<>();
         if(waitTime<0){
             Toast.makeText(this,"The entered date has passed",Toast.LENGTH_LONG).show();
         }
-        Toast.makeText(this,""+waitTime,Toast.LENGTH_LONG).show();
         return waitTime;
     }
 
@@ -395,7 +393,6 @@ private ArrayList<String> numbers = new ArrayList<>();
     public void scheduleBackend(JobInfo info){
         JobScheduler scheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         scheduler.schedule(info);
-
 
     }
 

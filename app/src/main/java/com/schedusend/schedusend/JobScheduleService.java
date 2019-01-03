@@ -1,13 +1,20 @@
 package com.schedusend.schedusend;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
 import android.widget.Toast;
 
 public class JobScheduleService extends JobService {
 private boolean jobWorking = false;
-public boolean jobCanel = false;
+public boolean jobCancel = false;
+
+private NotificationManager notifyManager;
+private NotificationChannel channel;
     @Override
     public boolean onStartJob(JobParameters jobParameters) {
         jobWorking = true;
@@ -18,7 +25,7 @@ public boolean jobCanel = false;
 
     @Override
     public boolean onStopJob(JobParameters jobParameters) {
-        jobCanel = true;
+        jobCancel = true;
         boolean reschedule = jobWorking;
         jobFinished(jobParameters, reschedule);
         return reschedule;
@@ -39,19 +46,29 @@ public boolean jobCanel = false;
             Toast.makeText(this, number,
                     Toast.LENGTH_LONG).show();
             smsManager.sendTextMessage(""+number, null, ""+ message, null, null);
-            Toast.makeText(this, "Message Sent",
-                    Toast.LENGTH_LONG).show();
+            notifyUser("Message Sent", message);
         } catch (Exception error) {
-            Toast.makeText(this, error.getMessage().toString(),
+            Toast.makeText(this, error.getMessage(),
                     Toast.LENGTH_LONG).show();
             error.printStackTrace();
         }
-        if(jobCanel){
+        if(jobCancel){
             return;
         }
         jobWorking = false;
         boolean reschedule = false;
         jobFinished(parameters, reschedule);
+
+    }
+
+    public void notifyUser(String contact, String message){
+        channel = new NotificationChannel("Channel_1", "Notify", NotificationManager.IMPORTANCE_HIGH);
+        notifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notifyManager.createNotificationChannel(channel);
+        Notification notify = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle(contact).setContentText(message)
+                .setChannelId("Channel_1").build();
+        notifyManager.notify((int) (Math.random()*1001), notify);
 
     }
 
