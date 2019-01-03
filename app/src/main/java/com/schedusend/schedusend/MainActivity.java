@@ -364,22 +364,22 @@ private ArrayList<String> numbers = new ArrayList<>();
         if(waitTime<0){
             Toast.makeText(this,"The entered date has passed",Toast.LENGTH_LONG).show();
         }
+        Toast.makeText(this,""+waitTime/1000, Toast.LENGTH_LONG).show();
         return waitTime;
     }
 
 
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
-        // get message
+        // Create a string array to store the message, number, and contact name
+        String[] clientInfo = {editMessage.getText().toString(), phoneNumber, editContact.getText().toString()};
+        // create a bundle to pass the client info to jobSchedulerService
         PersistableBundle text = new PersistableBundle();
-        // get the length of the message
-        int messgLength = editMessage.getText().toString().length();
-        // concatenate message and number
-        String packaged = editMessage.getText().toString()+phoneNumber;
-        // add the length of the message to the concatenated string
-        packaged += ""+messgLength;
-        text.putString("Text", packaged);
-        JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text).setMinimumLatency(timeWait).setOverrideDeadline(timeWait+10000).build();
+        text.putStringArray("Client", clientInfo);
+        // create the job
+        JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text)
+                .setMinimumLatency(timeWait).setOverrideDeadline(timeWait+10).build();
+        // make a new ID
         uniqueID++;
         if(timeWait<0){
             return null;

@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.SmsManager;
 import android.widget.Toast;
@@ -19,7 +20,7 @@ private NotificationChannel channel;
     public boolean onStartJob(JobParameters jobParameters) {
         jobWorking = true;
         //useThread(jobParameters);
-        deliverMessage(jobParameters.getExtras().getString("Text"), jobParameters);
+        deliverMessage(jobParameters.getExtras().getStringArray("Client"), jobParameters);
         return jobWorking;
     }
 
@@ -33,20 +34,19 @@ private NotificationChannel channel;
 
 
 
-    private void deliverMessage(String text, JobParameters parameters){
+    private void deliverMessage(String[] clientInfo, JobParameters parameters){
         try {
             SmsManager smsManager = SmsManager.getDefault();
-            // decode message
-            // retrieve length of message
-            int length = Character.getNumericValue(text.charAt(text.length()-1));
-            String message = text.substring(0,length);
-            String number = text.substring(length, text.length()-1);
-            Toast.makeText(this, message,
+            Toast.makeText(this, clientInfo[0],
                     Toast.LENGTH_LONG).show();
-            Toast.makeText(this, number,
+            Toast.makeText(this, clientInfo[1],
                     Toast.LENGTH_LONG).show();
-            smsManager.sendTextMessage(""+number, null, ""+ message, null, null);
-            notifyUser("Message Sent", message);
+            Toast.makeText(this, clientInfo[2],
+                    Toast.LENGTH_LONG).show();
+
+
+            smsManager.sendTextMessage(""+clientInfo[1], null, ""+ clientInfo[0], null, null);
+            notifyUser(clientInfo);
         } catch (Exception error) {
             Toast.makeText(this, error.getMessage(),
                     Toast.LENGTH_LONG).show();
@@ -61,26 +61,32 @@ private NotificationChannel channel;
 
     }
 
-    public void notifyUser(String contact, String message){
+    public void notifyUser(String[] clientInfo){
         channel = new NotificationChannel("Channel_1", "Notify", NotificationManager.IMPORTANCE_HIGH);
         notifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notifyManager.createNotificationChannel(channel);
         Notification notify = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle(contact).setContentText(message)
+                .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle("Message Sent To " + clientInfo[2]).setContentText(clientInfo[0])
                 .setChannelId("Channel_1").build();
         notifyManager.notify((int) (Math.random()*1001), notify);
 
     }
 
-  //  private void useThread(final JobParameters parameter){
-    //    new Thread(new Runnable() {
-      //      public void run() {
-        //        deliverMessage(parameter.getExtras().getString("Text"), parameter);
+   // private void useThread(final JobParameters parameter){
+     //   new Thread(new Runnable() {
+       //     public void run() {
+         //       android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+           //     try{
+             //       deliverMessage(parameter.getExtras().getStringArray("Client"), parameter);
+
+               // } catch (Exception error){
+                 //   error.printStackTrace();
+                //}
           //  }
-      //  }).start();
+        //}).start();
         
 
-  //  }
+    //}
 
 
 }
