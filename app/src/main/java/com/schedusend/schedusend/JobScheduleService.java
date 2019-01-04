@@ -59,7 +59,7 @@ private NotificationChannel channel;
         notifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notifyManager.createNotificationChannel(channel);
         Notification notify = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.ic_launcher_background).setContentTitle("Message Sent To " + clientInfo[2]).setContentText(clientInfo[0])
+                .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle("Message Sent To " + clientInfo[2]).setContentText(clientInfo[0])
                 .setChannelId("Channel_1").build();
         notifyManager.notify((int) (Math.random()*1001), notify);
 

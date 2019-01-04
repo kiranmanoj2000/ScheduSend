@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -71,11 +72,11 @@ private ArrayList<String> numbers = new ArrayList<>();
         setContentView(R.layout.activity_main);
         requestPermissions();
         initializeUI();
-
-
     }
 
     public void initializeUI(){
+        // removing notification bar
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         // initializing editTexts
         editYear = (EditText)findViewById(R.id.editYear);
         editAutoMonth = (AutoCompleteTextView)findViewById(R.id.autoMonth);
@@ -213,7 +214,7 @@ private ArrayList<String> numbers = new ArrayList<>();
             }else{
                 toastMessage("Please enter a valid year");
             }
-            // if the contacts havent been read in
+            // if the contacts havent been read in (contacts will only be read in once)
             if(!hasReadContacts){
                 readContacts();
 
@@ -366,7 +367,7 @@ private ArrayList<String> numbers = new ArrayList<>();
                 // if it is a valid phone number
                 if(PhoneNumberUtils.isWellFormedSmsAddress(numbers.get(index))){
                     phoneNumber = numbers.get(index);
-                    Toast.makeText(this,phoneNumber, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this,phoneNumber, Toast.LENGTH_SHORT).show();
                     editAutoContact.setFocusable(false);
                     editMessage.setFocusableInTouchMode(true);
                     allowSchedule = true;
@@ -469,7 +470,6 @@ private ArrayList<String> numbers = new ArrayList<>();
         if(waitTime<0){
             toastMessage("The entered date has passed");
         }
-        Toast.makeText(this,""+waitTime/1000, Toast.LENGTH_LONG).show();
         return waitTime;
     }
 
@@ -483,7 +483,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         text.putStringArray("Client", clientInfo);
         // create the job
         JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text)
-                .setMinimumLatency(timeWait).setOverrideDeadline(timeWait+10).build();
+                .setMinimumLatency(timeWait).setOverrideDeadline(timeWait+100).setRequiredNetworkType(JobInfo.NETWORK_TYPE_CELLULAR).build();
         // make a new ID
         uniqueID++;
         if(timeWait<0){
