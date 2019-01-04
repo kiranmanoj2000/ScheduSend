@@ -5,6 +5,7 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
@@ -12,6 +13,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -27,13 +31,21 @@ private boolean correctDay = false;
 private boolean correctTime = false;
 private boolean correctContact = false;
 private boolean allowSchedule = false;
+private boolean hasReadContacts = false;
 
 private EditText editYear;
-private EditText editMonth;
+private AutoCompleteTextView editAutoMonth;
 private EditText editDay;
 private EditText editTime;
-private EditText editContact;
+private AutoCompleteTextView editAutoContact;
 private EditText editMessage;
+
+private Button yearButton;
+private Button monthButton;
+private Button dayButton;
+private Button timeButton;
+private Button contactButton;
+
 
 private int monthIndex = -1;
 private int targetYear;
@@ -50,6 +62,7 @@ private String phoneNumber;
 private static final String[] MONTHS = {"January","February","March","April","May","June","July",
         "August","September","October","November","December"};
 private ArrayList<String> names = new ArrayList<>();
+private ArrayList<String> noDuplicateName = new ArrayList<>();
 private ArrayList<String> numbers = new ArrayList<>();
 
     @Override
@@ -64,15 +77,16 @@ private ArrayList<String> numbers = new ArrayList<>();
 
     public void initializeUI(){
         editYear = (EditText)findViewById(R.id.editYear);
-        editMonth = (EditText)findViewById(R.id.editMonth);
+        editAutoMonth = (AutoCompleteTextView)findViewById(R.id.autoMonth);
         editDay = (EditText)findViewById(R.id.editDay);
         editTime = (EditText)findViewById(R.id.editTime);
-        editContact = (EditText)findViewById(R.id.editContact);
+        editAutoContact = (AutoCompleteTextView)findViewById(R.id.autoContact);
         editMessage = (EditText)findViewById(R.id.editMessage);
+
 
         // setting to current times
         editYear.setText(""+Calendar.getInstance().get(Calendar.YEAR));
-        editMonth.setText(MONTHS[Calendar.getInstance().get(Calendar.MONTH)]);
+        editAutoMonth.setText(MONTHS[Calendar.getInstance().get(Calendar.MONTH)]);
         editDay.setText(""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
         // getting current hours and min
         int hours = (int)Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
@@ -90,16 +104,31 @@ private ArrayList<String> numbers = new ArrayList<>();
             editTime.setText(convertHours + ":" + convertMins);
         }
 
+        // setting the colours
 
-        // freezing each textview
-        editMonth.setFocusable(false);
+
+        // freezing each TextView
+        editAutoMonth.setFocusable(false);
         editDay.setFocusable(false);
         editTime.setFocusable(false);
-        editContact.setFocusable(false);
+        editAutoContact.setFocusable(false);
         editMessage.setFocusable(false);
 
+        // initialize suggestion of months for the user
+        ArrayAdapter<String> monthsAuto = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, MONTHS);
+        editAutoMonth.setAdapter(monthsAuto);
+    }
 
+    public void setButtonColourRed(Button button){
+        button.setBackgroundColor(Color.rgb(254, 57,84));
+    }
 
+    public void setButtonColourGreen(Button button){
+        button.setBackgroundColor(Color.rgb(57,254,81));
+    }
+
+    public void toastMessage(String text){
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show();
     }
 
     public void readContacts(){
@@ -110,7 +139,23 @@ private ArrayList<String> numbers = new ArrayList<>();
            numbers.add(readIn.getString(readIn.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)));
        }
        readIn.close();
+        // nicely format all of the numbers and names
        formatNumbers(numbers);
+       formatNames(names);
+       // initialize a string array of contact suggestions to provide to the user
+        ArrayAdapter<String> namesAuto = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, noDuplicateName);
+        editAutoContact.setAdapter(namesAuto);
+    }
+
+    public void formatNames(ArrayList<String> names){
+        int max = names.size();
+        for(int i = 0; i<max; i++){
+            // if the name isnt already in the new array
+            if(!noDuplicateName.contains(names.get(i))){
+                // add the value
+                noDuplicateName.add(names.get(i));
+            }
+        }
     }
 
     public void formatNumbers(ArrayList<String> numbers){
@@ -124,33 +169,42 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void setYear(View view){
-        targetYear = 0;
-        String year = editYear.getText().toString();
-        if(!year.equals("")){
-            targetYear = Integer.parseInt(year) - YEARCONVERSION;
+        // only allow this code to be executed if a correct year has not been entered
+        if(!correctYear){
+            targetYear = 0;
+            String year = editYear.getText().toString();
+            if(!year.equals("")){
+                targetYear = Integer.parseInt(year) - YEARCONVERSION;
+            }
+
+            if(targetYear == 0){
+                toastMessage("Please enter a year");
+            }
+
+            else if(targetYear>=(Calendar.getInstance().get(Calendar.YEAR))-YEARCONVERSION
+                    &&(targetYear-(Calendar.getInstance().get(Calendar.YEAR)-YEARCONVERSION))==0){
+                // increase the count of the correct inputs
+                correctYear=true;
+                // disable re-editing
+                editYear.setFocusable(false);
+                // allow editing of next
+                editAutoMonth.setFocusableInTouchMode(true);
+            }else{
+                toastMessage("Please enter a valid year");
+            }
+            // if the contacts havent been read in
+            if(!hasReadContacts){
+                readContacts();
+
+            }
+
         }
 
-        if(targetYear == 0){
-            Toast.makeText(this,"Please enter a year", Toast.LENGTH_LONG).show();
-        }
-
-        else if(targetYear>=(Calendar.getInstance().get(Calendar.YEAR))-YEARCONVERSION
-                &&(targetYear-(Calendar.getInstance().get(Calendar.YEAR)-YEARCONVERSION))==0){
-            // increase the count of the correct inputs
-            correctYear=true;
-            // disable re-editing
-            editYear.setFocusable(false);
-            // allow editing of next
-            editMonth.setFocusableInTouchMode(true);
-        }else{
-            Toast.makeText(this,"Please enter a valid year", Toast.LENGTH_LONG).show();
-        }
-        readContacts();
     }
 
     public void setMonth(View view){
-        if(correctYear){
-            String month = editMonth.getText().toString();
+        if(correctYear&&!correctMonth){
+            String month = editAutoMonth.getText().toString();
             boolean found = false;
             for(int i = 0; i<12 && !found; i++){
                 if(MONTHS[i].equalsIgnoreCase(month)){
@@ -160,22 +214,24 @@ private ArrayList<String> numbers = new ArrayList<>();
             }
             // check if a month is even entered
             if(monthIndex==-1){
-                Toast.makeText(this,"Please enter a proper month", Toast.LENGTH_LONG).show();
+                toastMessage("Please enter a proper month");
             }else
                 // if its December
                 if(Calendar.getInstance().get(Calendar.MONTH)==11&&!(monthIndex==0||monthIndex==11)){
-                    Toast.makeText(this,"Cannot schedule for longer than a month", Toast.LENGTH_LONG).show();
-                }else
-                if(monthIndex>(Calendar.getInstance().get(Calendar.MONTH)+1) && monthIndex!=11){
-                    Toast.makeText(this,"Cannot schedule for longer than a month", Toast.LENGTH_LONG).show();
+                    toastMessage("Cannot schedule for longer than a month");
+                }
+
+                else
+                if(monthIndex>(Calendar.getInstance().get(Calendar.MONTH)+1)){
+                    toastMessage("Cannot schedule for longer than a month");
                 }
                 // the month has passed
-                else if(Calendar.getInstance().get(Calendar.MONTH)-monthIndex<0){
-                    Toast.makeText(this,"Cannot schedule in the past", Toast.LENGTH_LONG).show();
+                else if(Calendar.getInstance().get(Calendar.MONTH)-monthIndex>0){
+                    toastMessage("Cannot schedule in the past");
                 }
 
                 else{
-                    editMonth.setFocusable(false);
+                    editAutoMonth.setFocusable(false);
                     editDay.setFocusableInTouchMode(true);
                     correctMonth = true;
                 }
@@ -184,29 +240,29 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void setDay(View view){
-        if(correctMonth){
+        if(correctMonth&&!correctDay){
             int date = 0;
             if(!editDay.getText().toString().equals("")){
                 date = Integer.parseInt(editDay.getText().toString());
             }
 
             if(date == -1){
-                Toast.makeText(this,"No date entered", Toast.LENGTH_LONG).show();
+                toastMessage("No date entered");
             }// date is before current date
             else if(date< Calendar.getInstance().get(Calendar.DAY_OF_MONTH)){
-                Toast.makeText(this,"Date is not before the current date", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not before the current date");
             }
             else if(date == 0){
-                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not in month");
             }
             else if(monthIndex==0&&date>31){
-                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not in month");
             }else if(monthIndex!=0 && monthIndex!=11 && monthIndex%2 == 1 && date>30){
-                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not in month");
             }else if(date>31&&monthIndex%2==0 && monthIndex!=11){
-                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not in month");
             }else if(date>31 && monthIndex ==11){
-                Toast.makeText(this,"Date is not in month", Toast.LENGTH_LONG).show();
+                toastMessage("Date is not in month");
             }
 
             // the day is valid
@@ -223,7 +279,7 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void setTime(View view){
-        if(correctDay) {
+        if(correctDay&&!correctTime) {
             int index = 0;
             String userTime = editTime.getText().toString();
             // if the string entered is 5 characters
@@ -237,7 +293,7 @@ private ArrayList<String> numbers = new ArrayList<>();
                 }
                 // there is more than one colon
                 if (index > 1) {
-                    Toast.makeText(this, "More than one colon", Toast.LENGTH_LONG).show();
+                    toastMessage("More than one colon");
                 }
                 // one colon in middle
                 else if (userTime.charAt(2) == ':') {
@@ -249,11 +305,11 @@ private ArrayList<String> numbers = new ArrayList<>();
                     Date compare = new Date(targetYear,monthIndex,targetDay,hr,min);
 
                     if (hr > 24 || min > 60) {
-                        Toast.makeText(this, "Please enter a valid time", Toast.LENGTH_LONG).show();
+                        toastMessage("Please enter a valid time");
                     }
                     // check if time is before the time right now
                     else if(!compare.after(Calendar.getInstance().getTime())){
-                        Toast.makeText(this, "The entered time has passed", Toast.LENGTH_LONG).show();
+                        toastMessage("The entered time has passed");
                     }
                     // CORRECT TIME
                     else {
@@ -261,15 +317,15 @@ private ArrayList<String> numbers = new ArrayList<>();
                         targetMinute = min;
                         correctTime = true;
                         editTime.setFocusable(false);
-                        editContact.setFocusableInTouchMode(true);
+                        editAutoContact.setFocusableInTouchMode(true);
                     }
                 }
                 // there's no colon in the centre
                 else {
-                    Toast.makeText(this, "Please seperate hrs and min with ':'", Toast.LENGTH_LONG).show();
+                    toastMessage("Please seperate hrs and min with ':'");
                 }
             } else {
-                Toast.makeText(this, "Please enter a 5 character time", Toast.LENGTH_LONG).show();
+                toastMessage("Please enter a 5 character time");
             }
         }
 
@@ -278,8 +334,8 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void setContact(View view){
-        if(correctTime){
-            String contact = editContact.getText().toString();
+        if(correctTime&&!correctContact){
+            String contact = editAutoContact.getText().toString();
             // check if a valid contact is entered
             int index = names.indexOf(contact);
             if(index!=-1){
@@ -287,16 +343,18 @@ private ArrayList<String> numbers = new ArrayList<>();
                 if(PhoneNumberUtils.isWellFormedSmsAddress(numbers.get(index))){
                     phoneNumber = numbers.get(index);
                     Toast.makeText(this,phoneNumber, Toast.LENGTH_LONG).show();
-                    editContact.setFocusable(false);
+                    editAutoContact.setFocusable(false);
                     editMessage.setFocusableInTouchMode(true);
                     allowSchedule = true;
                     correctContact = true;
+                    // prevents the users contacts from being scanned in again
+                    hasReadContacts = true;
                 }else{
-                    Toast.makeText(this, "The entered contact does not have a valid number", Toast.LENGTH_LONG).show();
+                    toastMessage("The entered contact does not have a valid number");
                 }
 
             }else{
-                Toast.makeText(this, "Please enter a valid contact", Toast.LENGTH_LONG).show();
+                toastMessage("Please enter a valid contact");
             }
         }
 
@@ -306,11 +364,11 @@ private ArrayList<String> numbers = new ArrayList<>();
 
     public void reset(View view){
         editYear.setFocusableInTouchMode(true);
-        editMonth.setFocusable(false);
+        editAutoMonth.setFocusable(false);
         editDay.setFocusable(false);
         editTime.setFocusable(false);
         editMessage.setFocusable(false);
-        editContact.setFocusable(false);
+        editAutoContact.setFocusable(false);
         correctYear = false;
         correctMonth = false;
         correctDay = false;
@@ -320,8 +378,8 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void callToSchedule(View view){
-        // only run id they have scheduled 3 or less messages
-        if(numScheduled<4){
+        // only run if they have scheduled 3 or less messages
+        if(numScheduled<3&&correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule){
             // get message
             String message = editMessage.getText().toString();
             if(!message.equals("")){
@@ -331,21 +389,25 @@ private ArrayList<String> numbers = new ArrayList<>();
                     scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
 
                 }else{
-                    Toast.makeText(this, "Message cannot be scheduled with current configuration", Toast.LENGTH_LONG).show();
+                    toastMessage("Message cannot be scheduled with current configuration");
                 }
             }
             else{
                 if(!allowSchedule){
-                    Toast.makeText(this, "Two messages cannot be scheduled at the same time", Toast.LENGTH_LONG).show();
+                    toastMessage("Two messages cannot be scheduled at the same time");
                 }else{
-                    Toast.makeText(this, "Message cannot be scheduled with an empty message", Toast.LENGTH_LONG).show();
+                    toastMessage("Message cannot be scheduled with an empty message");
                 }
 
             }
             allowSchedule = false;
             numScheduled++;
         }else{
-            Toast.makeText(this, "You cannot schedule more than 3 messages", Toast.LENGTH_LONG).show();
+            if(numScheduled>3){
+                toastMessage("You cannot schedule more than 3 messages");
+            }else{
+                toastMessage("Message cannot be scheduled with current configuration");
+            }
         }
 
     }
@@ -362,7 +424,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         }
         //if entered date is before current date
         if(waitTime<0){
-            Toast.makeText(this,"The entered date has passed",Toast.LENGTH_LONG).show();
+            toastMessage("The entered date has passed");
         }
         Toast.makeText(this,""+waitTime/1000, Toast.LENGTH_LONG).show();
         return waitTime;
@@ -372,7 +434,7 @@ private ArrayList<String> numbers = new ArrayList<>();
     JobInfo createJobInfo(int timeWait){
         ComponentName service = new ComponentName(this, JobScheduleService.class);
         // Create a string array to store the message, number, and contact name
-        String[] clientInfo = {editMessage.getText().toString(), phoneNumber, editContact.getText().toString()};
+        String[] clientInfo = {editMessage.getText().toString(), phoneNumber, editAutoContact.getText().toString()};
         // create a bundle to pass the client info to jobSchedulerService
         PersistableBundle text = new PersistableBundle();
         text.putStringArray("Client", clientInfo);

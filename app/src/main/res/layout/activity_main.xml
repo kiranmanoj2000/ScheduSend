@@ -20,19 +20,6 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/editMonth"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="55dp"
-        android:layout_marginEnd="152dp"
-        android:ems="10"
-        android:hint="@string/month_hint"
-        android:inputType="text"
-        android:digits="@string/alphabet"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editYear" />
-
-    <EditText
         android:id="@+id/editDay"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -42,7 +29,7 @@
         android:hint="@string/day_hint"
         android:inputType="number"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editMonth" />
+        app:layout_constraintTop_toBottomOf="@+id/autoMonth" />
 
     <EditText
         android:id="@+id/editTime"
@@ -61,25 +48,13 @@
         android:id="@+id/editMessage"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="280dp"
+        android:layout_marginTop="290dp"
         android:layout_marginEnd="84dp"
         android:ems="10"
         android:hint="@string/message_hint"
         android:inputType="textShortMessage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editDay" />
-
-    <EditText
-        android:id="@+id/editContact"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="55dp"
-        android:layout_marginEnd="152dp"
-        android:ems="10"
-        android:hint="@string/contact_hint"
-        android:inputType="text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTime" />
 
     <Button
     android:id="@+id/setYear"
@@ -97,11 +72,11 @@
         android:id="@+id/setMonth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
+        android:layout_marginStart="65dp"
         android:layout_marginTop="148dp"
         android:onClick="setMonth"
         android:text="@string/set_button"
-        app:layout_constraintStart_toEndOf="@+id/editMonth"
+        app:layout_constraintStart_toEndOf="@+id/autoMonth"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
@@ -152,12 +127,32 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="55dp"
+        android:layout_marginStart="65dp"
+        android:layout_marginTop="50dp"
         android:onClick="setContact"
         android:text="@string/set_button"
-        app:layout_constraintStart_toEndOf="@+id/editContact"
+        app:layout_constraintStart_toEndOf="@+id/autoContact"
         app:layout_constraintTop_toBottomOf="@+id/setTime" />
+
+    <AutoCompleteTextView
+        android:id="@+id/autoContact"
+        android:layout_width="213dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="48dp"
+        android:hint="@string/contact_hint"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTime" />
+
+    <AutoCompleteTextView
+        android:id="@+id/autoMonth"
+        android:layout_width="213dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="25dp"
+        android:layout_marginTop="55dp"
+        android:hint="@string/month_hint"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editYear" />
 
 
 </android.support.constraint.ConstraintLayout>
