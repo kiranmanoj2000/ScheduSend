@@ -57,19 +57,18 @@
         app:layout_constraintTop_toBottomOf="@+id/editDay" />
 
     <Button
-    android:id="@+id/setYear"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="40dp"
-    android:layout_marginLeft="40dp"
-    android:layout_marginTop="52dp"
-    android:onClick="setYear"
-    android:text="@string/set_button"
-    app:layout_constraintStart_toEndOf="@+id/editYear"
-    app:layout_constraintTop_toTopOf="parent" />
+        android:id="@+id/yearButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="52dp"
+        android:onClick="setYear"
+        android:text="@string/set_button"
+        app:layout_constraintStart_toEndOf="@+id/editYear"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/setMonth"
+        android:id="@+id/monthButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="65dp"
@@ -80,7 +79,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/setDay"
+        android:id="@+id/dayButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
@@ -91,7 +90,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/setTime"
+        android:id="@+id/timeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="40dp"
@@ -102,7 +101,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/resetButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="136dp"
@@ -110,10 +109,10 @@
         android:onClick="reset"
         android:text="@string/reset"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/setTime" />
+        app:layout_constraintTop_toBottomOf="@+id/timeButton" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/sendButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -124,7 +123,7 @@
         app:layout_constraintTop_toBottomOf="@+id/editTime" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/contactButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="65dp"
@@ -132,7 +131,7 @@
         android:onClick="setContact"
         android:text="@string/set_button"
         app:layout_constraintStart_toEndOf="@+id/autoContact"
-        app:layout_constraintTop_toBottomOf="@+id/setTime" />
+        app:layout_constraintTop_toBottomOf="@+id/timeButton" />
 
     <AutoCompleteTextView
         android:id="@+id/autoContact"

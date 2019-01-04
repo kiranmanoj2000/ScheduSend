@@ -45,7 +45,7 @@ private Button monthButton;
 private Button dayButton;
 private Button timeButton;
 private Button contactButton;
-
+private Button sendButton;
 
 private int monthIndex = -1;
 private int targetYear;
@@ -57,7 +57,7 @@ private int uniqueID = 0;
 private static final int YEARCONVERSION = 1900;
 
 private String phoneNumber;
-
+private String check = new String(Character.toChars(0x2705));
 
 private static final String[] MONTHS = {"January","February","March","April","May","June","July",
         "August","September","October","November","December"};
@@ -76,12 +76,21 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void initializeUI(){
+        // initializing editTexts
         editYear = (EditText)findViewById(R.id.editYear);
         editAutoMonth = (AutoCompleteTextView)findViewById(R.id.autoMonth);
         editDay = (EditText)findViewById(R.id.editDay);
         editTime = (EditText)findViewById(R.id.editTime);
         editAutoContact = (AutoCompleteTextView)findViewById(R.id.autoContact);
         editMessage = (EditText)findViewById(R.id.editMessage);
+
+        // initializing buttons
+        yearButton = (Button)findViewById(R.id.yearButton);
+        monthButton = (Button)findViewById(R.id.monthButton);
+        dayButton = (Button)findViewById(R.id.dayButton);
+        timeButton = (Button)findViewById(R.id.timeButton);
+        contactButton = (Button)findViewById(R.id.contactButton);
+        sendButton = (Button)findViewById(R.id.sendButton);
 
 
         // setting to current times
@@ -104,7 +113,14 @@ private ArrayList<String> numbers = new ArrayList<>();
             editTime.setText(convertHours + ":" + convertMins);
         }
 
-        // setting the colours
+        // setting the colours of buttons
+        setButtonColourRed(yearButton);
+        setButtonColourRed(monthButton);
+        setButtonColourRed(dayButton);
+        setButtonColourRed(timeButton);
+        setButtonColourRed(contactButton);
+        setButtonColourRed(sendButton);
+
 
 
         // freezing each TextView
@@ -125,6 +141,9 @@ private ArrayList<String> numbers = new ArrayList<>();
 
     public void setButtonColourGreen(Button button){
         button.setBackgroundColor(Color.rgb(57,254,81));
+        if(button!=sendButton){
+            button.setText(check);
+        }
     }
 
     public void toastMessage(String text){
@@ -187,6 +206,8 @@ private ArrayList<String> numbers = new ArrayList<>();
                 correctYear=true;
                 // disable re-editing
                 editYear.setFocusable(false);
+                // change colour
+                setButtonColourGreen(yearButton);
                 // allow editing of next
                 editAutoMonth.setFocusableInTouchMode(true);
             }else{
@@ -233,6 +254,7 @@ private ArrayList<String> numbers = new ArrayList<>();
                 else{
                     editAutoMonth.setFocusable(false);
                     editDay.setFocusableInTouchMode(true);
+                    setButtonColourGreen(monthButton);
                     correctMonth = true;
                 }
         }
@@ -270,6 +292,7 @@ private ArrayList<String> numbers = new ArrayList<>();
                 editDay.setFocusable(false);
                 editTime.setFocusableInTouchMode(true);
                 targetDay = date;
+                setButtonColourGreen(dayButton);
                 correctDay = true;
             }
         }
@@ -317,12 +340,13 @@ private ArrayList<String> numbers = new ArrayList<>();
                         targetMinute = min;
                         correctTime = true;
                         editTime.setFocusable(false);
+                        setButtonColourGreen(timeButton);
                         editAutoContact.setFocusableInTouchMode(true);
                     }
                 }
                 // there's no colon in the centre
                 else {
-                    toastMessage("Please seperate hrs and min with ':'");
+                    toastMessage("Please separate hrs and min with ':'");
                 }
             } else {
                 toastMessage("Please enter a 5 character time");
@@ -349,6 +373,7 @@ private ArrayList<String> numbers = new ArrayList<>();
                     correctContact = true;
                     // prevents the users contacts from being scanned in again
                     hasReadContacts = true;
+                    setButtonColourGreen(contactButton);
                 }else{
                     toastMessage("The entered contact does not have a valid number");
                 }
@@ -363,18 +388,35 @@ private ArrayList<String> numbers = new ArrayList<>();
 
 
     public void reset(View view){
+        // lock all textviews
         editYear.setFocusableInTouchMode(true);
         editAutoMonth.setFocusable(false);
         editDay.setFocusable(false);
         editTime.setFocusable(false);
         editMessage.setFocusable(false);
         editAutoContact.setFocusable(false);
+        // none of the info entered from the client has been verified
         correctYear = false;
         correctMonth = false;
         correctDay = false;
         correctTime = false;
         correctContact = false;
         allowSchedule = false;
+        // reset the colours of the buttons to red
+        setButtonColourRed(yearButton);
+        setButtonColourRed(monthButton);
+        setButtonColourRed(dayButton);
+        setButtonColourRed(timeButton);
+        setButtonColourRed(contactButton);
+        setButtonColourRed(sendButton);
+        // remove check mark and reset text
+        yearButton.setText("SET");
+        monthButton.setText("SET");
+        dayButton.setText("SET");
+        timeButton.setText("SET");
+        contactButton.setText("SET");
+
+
     }
 
     public void callToSchedule(View view){
@@ -387,7 +429,8 @@ private ArrayList<String> numbers = new ArrayList<>();
                 if(correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule){
 
                     scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
-
+                    setButtonColourGreen(sendButton);
+                    toastMessage("Your message has been scheduled");
                 }else{
                     toastMessage("Message cannot be scheduled with current configuration");
                 }
