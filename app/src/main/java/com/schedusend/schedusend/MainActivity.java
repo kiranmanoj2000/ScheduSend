@@ -33,6 +33,8 @@ private boolean correctTime = false;
 private boolean correctContact = false;
 private boolean allowSchedule = false;
 private boolean hasReadContacts = false;
+private boolean inDoze = false;
+private boolean inDozeSet = false;
 
 private EditText editYear;
 private AutoCompleteTextView editAutoMonth;
@@ -47,6 +49,7 @@ private Button dayButton;
 private Button timeButton;
 private Button contactButton;
 private Button sendButton;
+private Button dozeButton;
 
 private int monthIndex = -1;
 private int targetYear;
@@ -55,10 +58,13 @@ private int targetHour;
 private int targetMinute;
 private int numScheduled = 0;
 private int uniqueID = 0;
+private int count = 0;
 private static final int YEARCONVERSION = 1900;
 
 private String phoneNumber;
 private String check = new String(Character.toChars(0x2705));
+
+private JobInfo info;
 
 private static final String[] MONTHS = {"January","February","March","April","May","June","July",
         "August","September","October","November","December"};
@@ -92,6 +98,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         timeButton = (Button)findViewById(R.id.timeButton);
         contactButton = (Button)findViewById(R.id.contactButton);
         sendButton = (Button)findViewById(R.id.sendButton);
+        dozeButton = (Button)findViewById(R.id.dozeButton);
 
 
         // setting to current times
@@ -134,6 +141,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         // initialize suggestion of months for the user
         ArrayAdapter<String> monthsAuto = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, MONTHS);
         editAutoMonth.setAdapter(monthsAuto);
+
     }
 
     public void setButtonColourRed(Button button){
@@ -145,6 +153,19 @@ private ArrayList<String> numbers = new ArrayList<>();
         if(button!=sendButton){
             button.setText(check);
         }
+    }
+
+    public void setDoze(View view){
+        // alternated between doze and not in doze
+        count++;
+        if(count%2!=0){
+            dozeButton.setText("Device will NOT be used 30 min prior to message being sent");
+            inDoze= true;
+        }else{
+            dozeButton.setText("Device WILL be used 30 min prior to message being sent");
+            inDoze = false;
+        }
+        inDozeSet = true;
     }
 
     public void toastMessage(String text){
@@ -403,6 +424,7 @@ private ArrayList<String> numbers = new ArrayList<>();
         correctTime = false;
         correctContact = false;
         allowSchedule = false;
+        inDozeSet = false;
         // reset the colours of the buttons to red
         setButtonColourRed(yearButton);
         setButtonColourRed(monthButton);
@@ -482,8 +504,17 @@ private ArrayList<String> numbers = new ArrayList<>();
         PersistableBundle text = new PersistableBundle();
         text.putStringArray("Client", clientInfo);
         // create the job
-        JobInfo info = new JobInfo.Builder(uniqueID, service).setExtras(text)
-                .setMinimumLatency(timeWait).setOverrideDeadline(timeWait+100).setRequiredNetworkType(JobInfo.NETWORK_TYPE_CELLULAR).build();
+        // if the job will be performed in a dozed state
+        if(inDoze){
+            info = new JobInfo.Builder(uniqueID, service).setExtras(text).setRequiresDeviceIdle(true)
+                    .setMinimumLatency(timeWait).setOverrideDeadline(timeWait+1)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_CELLULAR).build();
+        }else {
+            info = new JobInfo.Builder(uniqueID, service).setExtras(text)
+                    .setMinimumLatency(timeWait).setOverrideDeadline(timeWait).setRequiredNetworkType(JobInfo.NETWORK_TYPE_CELLULAR).build();
+        }
+
+
         // make a new ID
         uniqueID++;
         if(timeWait<0){

@@ -11,4 +11,5 @@
     <string name="contact_hint">Contact</string>
     <string name="reset">Reschedule</string>
     <string name="schedule">Schedule!</string>
+    <string name="doze">Device WILL be used 30 min prior to message being sent</string>
 </resources>
