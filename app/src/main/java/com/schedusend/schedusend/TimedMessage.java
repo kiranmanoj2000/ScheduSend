@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class TimedMessage extends AppCompatActivity {
 
 private boolean correctYear = false;
 private boolean correctMonth = false;
@@ -71,8 +71,8 @@ private ArrayList<String> numbers = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        requestPermissions();
+        setContentView(R.layout.timed_message);
+
         initializeUI();
     }
 
@@ -511,8 +511,5 @@ private ArrayList<String> numbers = new ArrayList<>();
 
     }
 
-    public void requestPermissions(){
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS},1);
 
-    }
 }
