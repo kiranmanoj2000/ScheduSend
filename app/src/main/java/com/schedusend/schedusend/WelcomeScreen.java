@@ -29,7 +29,7 @@ public class WelcomeScreen extends AppCompatActivity {
     }
 
     public void moveLocationScreen (View view){
-        Intent intent = new Intent(this, LocationMessage.class);
+        Intent intent = new Intent(this, MapsActivity.class);
         startActivity(intent);
     }
 }
