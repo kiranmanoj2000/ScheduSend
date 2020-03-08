@@ -5,8 +5,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 import android.telephony.SmsManager;
+import android.widget.Toast;
 
 public class JobScheduleService extends JobService {
 
@@ -74,6 +75,7 @@ private NotificationChannel channel;
                 try{
                     // deliver the message
                     deliverMessage(parameter.getExtras().getStringArray("Client"), parameter);
+
                 } catch (Exception error){
                     error.printStackTrace();
                 }

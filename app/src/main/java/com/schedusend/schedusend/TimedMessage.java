@@ -8,8 +8,8 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.PersistableBundle;
 import android.provider.ContactsContract;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneNumberUtils;
 import android.view.View;
@@ -508,6 +508,7 @@ private ArrayList<String> numbers = new ArrayList<>();
     public void scheduleBackend(JobInfo info){
         JobScheduler scheduler = (JobScheduler) this.getSystemService(Context.JOB_SCHEDULER_SERVICE);
         scheduler.schedule(info);
+        
 
     }
 
