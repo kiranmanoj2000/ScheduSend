@@ -20,12 +20,11 @@ public class WelcomeScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstance){
         super.onCreate(savedInstance);
         setContentView(R.layout.welcome_screen);
-        geofencingClient = LocationServices.getGeofencingClient(this);
         requestPermissions();
     }
 
     public void requestPermissions(){
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS},1);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS, Manifest.permission.ACCESS_BACKGROUND_LOCATION},1);
 
     }
     public void moveTimeScreen (View view){
