@@ -1,5 +1,7 @@
 package com.schedusend.schedusend;
 import android.Manifest;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
@@ -17,7 +19,9 @@ import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -68,12 +72,23 @@ private ArrayList<String> names = new ArrayList<>();
 private ArrayList<String> noDuplicateName = new ArrayList<>();
 private ArrayList<String> numbers = new ArrayList<>();
 
+    Button btnDatePicker, btnTimePicker;
+    EditText txtDate, txtTime;
+
+    private int setYear = Calendar.getInstance().get(Calendar.YEAR);
+    private int setMonth  = Calendar.getInstance().get(Calendar.MONTH);
+    private int setDay = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+    private int setHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+    private int setMinute = Calendar.getInstance().get(Calendar.MINUTE);
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.timed_message);
 
         initializeUI();
+
     }
 
     public void initializeUI(){
@@ -137,6 +152,72 @@ private ArrayList<String> numbers = new ArrayList<>();
         ArrayAdapter<String> monthsAuto = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, MONTHS);
         editAutoMonth.setAdapter(monthsAuto);
 
+
+
+        // NEW DATE IMPLEMENTATION
+        btnDatePicker=(Button)findViewById(R.id.btn_date);
+        btnTimePicker=(Button)findViewById(R.id.btn_time);
+        txtDate=(EditText)findViewById(R.id.in_date);
+        txtTime=(EditText)findViewById(R.id.in_time);
+
+
+
+    }
+
+    public void onDateSelectClick(View view){
+        // Get Current Date
+        /*final Calendar c = Calendar.getInstance();
+        mYear = c.get(Calendar.YEAR);
+        mMonth = c.get(Calendar.MONTH);
+        mDay = c.get(Calendar.DAY_OF_MONTH);*/
+
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                new DatePickerDialog.OnDateSetListener() {
+
+                    @Override
+                    public void onDateSet(DatePicker view, int year,
+                                          int monthOfYear, int dayOfMonth) {
+                        setYear = year;
+                        setMonth = monthOfYear;
+                        setDay = dayOfMonth;
+                        txtDate.setText(setDay + "/" + (setMonth + 1) + "/" + setYear);
+                    }
+                }, setYear, setMonth, setDay);
+        // cant select prev dates
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+
+        datePickerDialog.show();
+    }
+
+    public void onTimeSelectCLick(View view){
+
+
+        // Launch Time Picker Dialog
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this,
+                new TimePickerDialog.OnTimeSetListener() {
+
+
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        Calendar datetime = Calendar.getInstance();
+                        datetime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        datetime.set(Calendar.MINUTE, minute);
+                        if(Calendar.getInstance().getTimeInMillis() <= datetime.getTimeInMillis()){
+                            boolean isPm = hourOfDay > 11;
+                            String strMinute = minute <10 ? "0"+minute: minute + "";String hour = isPm && hourOfDay !=12 ? hourOfDay - 12 + "": hourOfDay+"";
+
+                            txtTime.setText(hour + ":" + strMinute +" " + (isPm ? "p" : "a") + "m"  );
+
+                            setHour = hourOfDay;
+                            setMinute = minute;
+                        }
+                        else{
+                            toastMessage("Invalid time");
+                        }
+                    }
+                }, setHour, setMinute, false);
+        timePickerDialog.show();
     }
 
     public void setButtonColourRed(Button button){
@@ -426,13 +507,21 @@ private ArrayList<String> numbers = new ArrayList<>();
     }
 
     public void callToSchedule(View view){
+
+
         // only run if they have scheduled 3 or less messages
-        if(numScheduled<3&&correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule){
+        if(numScheduled<3/*&&correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule*/){
             // get message
             String message = editMessage.getText().toString();
             if(!message.equals("")){
                 // only run if all times are proper
-                if(correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule){
+                Calendar datetime = Calendar.getInstance();
+                datetime.set(Calendar.YEAR, setYear);
+                datetime.set(Calendar.DAY_OF_MONTH, setDay);
+                datetime.set(Calendar.MONTH, setMonth);
+                datetime.set(Calendar.HOUR_OF_DAY, setHour);
+                datetime.set(Calendar.MINUTE, setMinute);
+                if(Calendar.getInstance().getTimeInMillis() < datetime.getTimeInMillis()/*correctYear&&correctMonth&&correctDay&&correctTime&&correctContact&&allowSchedule*/){
 
                     scheduleBackend(createJobInfo(calculateTimeUntil(targetYear,monthIndex,targetDay,targetHour,targetMinute)));
                     setButtonColourGreen(sendButton);

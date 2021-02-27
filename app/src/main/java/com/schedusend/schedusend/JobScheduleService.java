@@ -56,12 +56,12 @@ private NotificationChannel channel;
     }
 
     public void notifyUser(String[] clientInfo){
-        channel = new NotificationChannel("Channel_1", "Notify", NotificationManager.IMPORTANCE_HIGH);
+        channel = new NotificationChannel("Channel_8", "Notify", NotificationManager.IMPORTANCE_HIGH);
         notifyManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notifyManager.createNotificationChannel(channel);
         Notification notify = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_launcher_foreground).setContentTitle("Message Sent To " + clientInfo[2]).setContentText(clientInfo[0])
-                .setChannelId("Channel_1").build();
+                .setChannelId("Channel_8").build();
         notifyManager.notify((int) (Math.random()*1001), notify);
 
     }

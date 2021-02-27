@@ -24,7 +24,7 @@ public class WelcomeScreen extends AppCompatActivity {
     }
 
     public void requestPermissions(){
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS, Manifest.permission.ACCESS_BACKGROUND_LOCATION},1);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_CONTACTS,Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.INTERNET},1);
 
     }
     public void moveTimeScreen (View view){
